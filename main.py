@@ -61,19 +61,21 @@ class game(object):
         self.board_size = board_size
         self.board_width = board_size * image_size
         self.board_height = board_size * image_size
-        self.window_size = self.board_width, self.board_height
+        self.window_size = self.board_width , self.board_height + 100
         print(self.window_size)
         self.board = board(self.board_size)
+        self.clock = pygame.time.Clock()
         self.board.fill()
         self.window = None
         self.image_alive = None
         self.image_dead = None
-        
 
     def initialize_window(self):
         self.window = pygame.display.set_mode(self.window_size)
         self.image_alive = pygame.image.load("alive.png").convert()
         self.image_dead = pygame.image.load("dead.png").convert()
+        self.image_running = pygame.image.load("red_light.png").convert()
+        self.window.blit(self.image_running, (10, self.board_height))
 
     def draw_board(self):
         for i in range(self.board_size):
@@ -100,7 +102,6 @@ class game(object):
         return False
 
     def next_step(self):
-        print("Next Step")
         for i in range(self.board_size):
             for j in range(self.board_size):
                 oneCell = self.board.array_of_cells[i][j]
@@ -126,15 +127,38 @@ class game(object):
     def run(self):
         self.initialize_window()
         self.draw_board()
+        elapsed_time = 0
+        run = False
         done = False
         while done != True:
+            milliseconde = self.clock.tick(60)
+            elapsed_time += milliseconde
             for event in pygame.event.get():
+
                 if event.type == QUIT:
                     done = True 
 
                 elif event.type == KEYUP:
                     if event.key == K_SPACE:
                         self.next_step() 
+
+                    elif event.key == K_c:
+                        print("Clear")
+                        for i in range(self.board_size):
+                            for j in range(self.board_size):
+                                self.board.array_of_cells[i][j].alive = False
+                        self.draw_board()
+
+                    elif event.key == K_r:
+                        run = not run
+                        if(run):
+                            print("Start")
+                            self.image_running = pygame.image.load("green_light.png").convert()
+                        else:
+                            self.image_running = pygame.image.load("red_light.png").convert()
+                            print("Stop")
+                        self.window.blit(self.image_running, (10, self.board_height))
+                        pygame.display.update()
 
                 elif event.type == pygame.MOUSEBUTTONUP:
                     mouse_position = pygame.mouse.get_pos() 
@@ -151,7 +175,11 @@ class game(object):
                                     oneCell.pressed = True
                                     number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
                                 self.draw_board()
-                            
+
+            if run and elapsed_time >= 1000:
+                elapsed_time = 0
+                self.next_step()
+                                          
         return True            
 
 if __name__ == "__main__":
