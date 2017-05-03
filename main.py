@@ -56,7 +56,7 @@ class board(object):
 
 class game(object):
 
-    def __init__(self,image_size, board_size):
+    def __init__(self,image_size, board_size, speed=1):
         self.image_size = image_size
         self.board_size = board_size
         self.board_width = board_size * image_size
@@ -65,6 +65,7 @@ class game(object):
         print(self.window_size)
         self.board = board(self.board_size)
         self.clock = pygame.time.Clock()
+        self.speed = speed
         self.board.fill()
         self.window = None
         self.image_alive = None
@@ -176,7 +177,7 @@ class game(object):
                                     number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
                                 self.draw_board()
 
-            if run and elapsed_time >= 1000:
+            if run and elapsed_time >= 1000/self.speed:
                 elapsed_time = 0
                 self.next_step()
                                           
@@ -184,6 +185,6 @@ class game(object):
 
 if __name__ == "__main__":
     pygame.init()
-    newGame = game(16, 32)
+    newGame = game(16, 50, 4)
     newGame.run()
     pygame.quit()

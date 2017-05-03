@@ -1,0 +1,28 @@
+# Game Of Life
+
+## Dependencies
+
+* python 3 >
+* pygame
+
+## Utilisation 
+
+* pour changer la taille de grille il faut modifier la ligne 188
+```python
+newGame = game(16, 50, 4)
+```
+la premiere valeur est la taille des sprites la deuxiemes la taille de la grille la troisième la vitesse des itérations
+
+* La touche espace passe une itération a la fois
+* La touche r permet de faire passer les itérations automatiquement
+* La touche c permet de clear le tableau
+
+## Explication
+
+chaque case représente une cellule qui peux avoir deux etats:
+* morte -> la case est grise 
+* vivante -> la vase est bleu
+
+* si une cellule vivante est en contact avec 2 ou 3 autres cellules elle reste vivante lors de la prochaine itération
+* si une cellule est morte et est en contact avec exactement 3 cellules elle devient vivante a l'itération suivante 
+* dans tous les autres cas la cellule meurt ou reste morte (trop peu ou trop de cellules adjacentes)
