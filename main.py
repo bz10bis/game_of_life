@@ -1,4 +1,5 @@
 import pygame
+import copy
 from pygame.locals import *
 
 class cell(object):
@@ -71,6 +72,7 @@ class game(object):
         self.image_alive = None
         self.image_dead = None
         self.iteration = 0
+        self.previous_board = None
 
     def initialize_window(self):
         self.window = pygame.display.set_mode(self.window_size, HWSURFACE|DOUBLEBUF|RESIZABLE)
@@ -125,6 +127,15 @@ class game(object):
                     oneCell.alive = False
         self.draw_board()   
 
+    def save_board(self):
+        self.previous_board = copy.deepcopy(self.board.array_of_cells)
+        print(self.board.array_of_cells[0][0].alive)
+
+    def load_board(self):
+        if(self.previous_board != None):
+            self.board.array_of_cells = self.previous_board
+            print(self.board.array_of_cells[0][0].alive)
+            self.draw_board()
 
     def run(self):
         self.initialize_window()
@@ -151,11 +162,21 @@ class game(object):
                                 self.board.array_of_cells[i][j].alive = False
                         self.draw_board()
 
+                    elif event.key == K_l:
+                        print("Load last save state")
+                        self.load_board()
+                        self.draw_board()
+
+                    elif event.key == K_s:
+                        print("Saving")
+                        self.save_board()
+
                     elif event.key == K_r:
                         run = not run
                         self.iteration = 0
                         if(run):
                             print("Start")
+                            self.save_board()
                             self.image_running = pygame.image.load("green_light.png").convert()
                         else:
                             self.image_running = pygame.image.load("red_light.png").convert()
