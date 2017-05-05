@@ -70,9 +70,10 @@ class game(object):
         self.window = None
         self.image_alive = None
         self.image_dead = None
+        self.iteration = 0
 
     def initialize_window(self):
-        self.window = pygame.display.set_mode(self.window_size)
+        self.window = pygame.display.set_mode(self.window_size, HWSURFACE|DOUBLEBUF|RESIZABLE)
         self.image_alive = pygame.image.load("alive.png").convert()
         self.image_dead = pygame.image.load("dead.png").convert()
         self.image_running = pygame.image.load("red_light.png").convert()
@@ -152,6 +153,7 @@ class game(object):
 
                     elif event.key == K_r:
                         run = not run
+                        self.iteration = 0
                         if(run):
                             print("Start")
                             self.image_running = pygame.image.load("green_light.png").convert()
@@ -161,30 +163,55 @@ class game(object):
                         self.window.blit(self.image_running, (10, self.board_height))
                         pygame.display.update()
 
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    mouse_position = pygame.mouse.get_pos() 
-                    cells_location = self.get_cells_location()
-                    for i in range(self.board_size):
-                        for j in range(self.board_size):
-                            oneCell = self.board.array_of_cells[i][j]
-                            if self.is_inside_area(mouse_position, cells_location[i][j]):
-                                if oneCell.alive:
-                                    oneCell.alive = False
-                                    oneCell.pressed = False
-                                else:                           
-                                    oneCell.alive = True
-                                    oneCell.pressed = True
-                                    number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
-                                self.draw_board()
+            mouse = pygame.mouse.get_pressed()
+            mouse_position = pygame.mouse.get_pos()
+            if mouse[0]:
+                cells_location = self.get_cells_location()
+                for i in range(self.board_size):
+                    for j in range(self.board_size):
+                        oneCell = self.board.array_of_cells[i][j]
+                        if self.is_inside_area(mouse_position, cells_location[i][j]):
+                            if oneCell.alive != True:
+                                oneCell.alive = True
+                                oneCell.pressed = True
+                self.draw_board()
+
+            if mouse[2]:
+                cells_location = self.get_cells_location()
+                for i in range(self.board_size):
+                    for j in range(self.board_size):
+                        oneCell = self.board.array_of_cells[i][j]
+                        if self.is_inside_area(mouse_position, cells_location[i][j]):
+                            if oneCell.alive == True:
+                                oneCell.alive = False
+                                oneCell.pressed = False
+                self.draw_board()
+                # elif event.type == pygame.MOUSEBUTTONUP:
+                #     mouse_position = pygame.mouse.get_pos() 
+                #     cells_location = self.get_cells_location()
+                #     for i in range(self.board_size):
+                #         for j in range(self.board_size):
+                #             oneCell = self.board.array_of_cells[i][j]
+                #             if self.is_inside_area(mouse_position, cells_location[i][j]):
+                #                 if oneCell.alive:
+                #                     oneCell.alive = False
+                #                     oneCell.pressed = False
+                #                 else:                           
+                #                     oneCell.alive = True
+                #                     oneCell.pressed = True
+                #                     number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
+                #                 self.draw_board()
 
             if run and elapsed_time >= 1000/self.speed:
                 elapsed_time = 0
+                self.iteration += 1
+                print(self.iteration)
                 self.next_step()
                                           
         return True            
 
 if __name__ == "__main__":
     pygame.init()
-    newGame = game(16, 50, 4)
+    newGame = game(16, 50, 3)
     newGame.run()
     pygame.quit()
