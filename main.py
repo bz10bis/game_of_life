@@ -9,6 +9,7 @@ class cell(object):
         self.pressed = False
         self.alive = alive
         self.coordinates = coordinates
+        self.player2 = False
 
     def get_coordinates(self):
         return self.coordinates
@@ -28,6 +29,8 @@ class board(object):
     def get_surrounding(self, cell_position):
         values = self.check_out_of_range(cell_position, self.board_size)
         number_of_neighbour = 0
+        number_of_player1_neighbour = 0
+        number_of_player2_neighbour = 0
         column = values[0]
         next_column = column + 2
         row = values[1]
@@ -35,15 +38,24 @@ class board(object):
             #print("Board Size: " + str(self.board_size) + " i: " + str(i) + " row: " + str(row) + " column " + str(column))
             if i >= 0 and i < self.board_size:
                 if self.array_of_cells[i][row].alive == True and i != column:
-                    number_of_neighbour += 1
+                    if self.array_of_cells[i][row].player2:
+                        number_of_player2_neighbour += 1
+                    else:
+                        number_of_player1_neighbour += 1
                 if row - 1 >= 0:
                     if self.array_of_cells[i][row - 1].alive == True:
-                        number_of_neighbour += 1
+                        if self.array_of_cells[i][row].player2:
+                            number_of_player2_neighbour += 1
+                        else:
+                            number_of_player1_neighbour += 1
                 if row + 1 < self.board_size:
                     if self.array_of_cells[i][row + 1].alive == True:
-                        number_of_neighbour += 1
+                        if self.array_of_cells[i][row].player2:
+                            number_of_player2_neighbour += 1
+                        else:
+                            number_of_player1_neighbour += 1
 
-        return number_of_neighbour
+        return number_of_player1_neighbour,number_of_player2_neighbour
 
     def check_out_of_range(self,values, limit):
         new_values = []
@@ -77,6 +89,7 @@ class game(object):
     def initialize_window(self):
         self.window = pygame.display.set_mode(self.window_size, HWSURFACE|DOUBLEBUF|RESIZABLE)
         self.image_alive = pygame.image.load("alive.png").convert()
+        self.image_alive_2 = pygame.image.load("alive2.png").convert()
         self.image_dead = pygame.image.load("dead.png").convert()
         self.image_running = pygame.image.load("red_light.png").convert()
         self.window.blit(self.image_running, (10, self.board_height))
@@ -87,7 +100,10 @@ class game(object):
                 oneCell = self.board.array_of_cells[i][j]
                 coordinates = oneCell.get_coordinates()
                 if oneCell.alive:
-                    self.window.blit(self.image_alive, (coordinates[0] * self.image_size, coordinates[1] * self.image_size))
+                    if oneCell.player2:
+                        self.window.blit(self.image_alive_2, (coordinates[0] * self.image_size, coordinates[1] * self.image_size))    
+                    else:
+                        self.window.blit(self.image_alive, (coordinates[0] * self.image_size, coordinates[1] * self.image_size))
                 else:
                     self.window.blit(self.image_dead, (coordinates[0] * self.image_size, coordinates[1] * self.image_size))    
         pygame.display.flip()
@@ -109,11 +125,18 @@ class game(object):
         for i in range(self.board_size):
             for j in range(self.board_size):
                 oneCell = self.board.array_of_cells[i][j]
-                number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
+                number_of_player1_neighbour, number_of_player2_neighbour = self.board.get_surrounding(oneCell.coordinates)
+                number_of_neighbour = number_of_player1_neighbour + number_of_player2_neighbour            
                 if (number_of_neighbour == 2 or number_of_neighbour == 3) and oneCell.alive == True:
-                    oneCell.next_state = True
+                    oneCell.next_state = True                    
                 elif number_of_neighbour == 3 and oneCell.alive == False:
                     oneCell.next_state = True
+                    print("Number of p1: " + str(number_of_player1_neighbour))
+                    print("Number of p2: " + str(number_of_player2_neighbour))
+                    if number_of_player1_neighbour > number_of_player2_neighbour:
+                        oneCell.player2 = False
+                    elif number_of_player1_neighbour < number_of_player2_neighbour:
+                        oneCell.player2 = True
                 else:
                     oneCell.next_state = False
         for i in range(self.board_size):
@@ -197,6 +220,18 @@ class game(object):
                                 oneCell.pressed = True
                 self.draw_board()
 
+            if mouse[1]:
+                cells_location = self.get_cells_location()
+                for i in range(self.board_size):
+                    for j in range(self.board_size):
+                        oneCell = self.board.array_of_cells[i][j]
+                        if self.is_inside_area(mouse_position, cells_location[i][j]):
+                            if oneCell.alive != True:
+                                oneCell.alive = True
+                                oneCell.pressed = True
+                                oneCell.player2 = True
+                self.draw_board()
+
             if mouse[2]:
                 cells_location = self.get_cells_location()
                 for i in range(self.board_size):
@@ -206,22 +241,8 @@ class game(object):
                             if oneCell.alive == True:
                                 oneCell.alive = False
                                 oneCell.pressed = False
+                                oneCell.player2 = False
                 self.draw_board()
-                # elif event.type == pygame.MOUSEBUTTONUP:
-                #     mouse_position = pygame.mouse.get_pos() 
-                #     cells_location = self.get_cells_location()
-                #     for i in range(self.board_size):
-                #         for j in range(self.board_size):
-                #             oneCell = self.board.array_of_cells[i][j]
-                #             if self.is_inside_area(mouse_position, cells_location[i][j]):
-                #                 if oneCell.alive:
-                #                     oneCell.alive = False
-                #                     oneCell.pressed = False
-                #                 else:                           
-                #                     oneCell.alive = True
-                #                     oneCell.pressed = True
-                #                     number_of_neighbour = self.board.get_surrounding(oneCell.coordinates)
-                #                 self.draw_board()
 
             if run and elapsed_time >= 1000/self.speed:
                 elapsed_time = 0
@@ -233,6 +254,6 @@ class game(object):
 
 if __name__ == "__main__":
     pygame.init()
-    newGame = game(16, 50, 3)
+    newGame = game(16, 51, 3)
     newGame.run()
     pygame.quit()
