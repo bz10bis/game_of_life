@@ -202,6 +202,9 @@ class Game:
 					oneCell.alive = False
 		self.draw_board()
 
+	def save_board(self):
+		self.previous_board = copy.deepcopy(self.board.array_of_cells)
+
 	def run(self):
 		self.initialize_window()
 		self.draw_board()
@@ -226,9 +229,9 @@ class Game:
 					elif event.key == K_l:
 						self.load_board()
 						self.draw_board()
-					elif event.key == k_s:
+					elif event.key == K_s:
 						self.save_board()
-					elif event.key == k_r:
+					elif event.key == K_r:
 						run = not run
 						self.iteration = 0
 						if(run):
@@ -281,6 +284,6 @@ class Game:
 
 if __name__ == '__main__':
 	pygame.init()
-	newGame = Game(16, (50,50))
+	newGame = Game(16, (50,50), 3)
 	newGame.run()
 	pygame.quit()
